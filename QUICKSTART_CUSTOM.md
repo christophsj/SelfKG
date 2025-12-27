@@ -164,6 +164,24 @@ Number of runs: 3
 
 ## Troubleshooting
 
+### CUDA Error: "no kernel image is available"
+
+**This is the most common issue!** See **CUDA_FIX_GUIDE.md** for complete solutions.
+
+**Quick fix:**
+```bash
+# 1. Run diagnostic
+python check_cuda_compatibility.py
+
+# 2. Reinstall PyTorch (recommended)
+pip uninstall torch torchvision torchaudio -y
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+
+# 3. Or use CPU (slower but always works)
+python preprocess_custom_datasets.py --device cpu
+python run_custom_experiments.py --device cpu --num_runs 3
+```
+
 ### Out of Memory Error
 ```bash
 # Reduce batch size and queue length

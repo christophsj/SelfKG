@@ -368,6 +368,23 @@ head data/custom/fr_en/ent_ids_1
 head data/custom/fr_en/triples_1
 ```
 
+### CUDA error: "no kernel image is available"
+This means PyTorch doesn't support your GPU architecture. See **CUDA_FIX_GUIDE.md** for detailed solutions.
+
+**Quick fix:**
+```bash
+# Run diagnostic
+python check_cuda_compatibility.py
+
+# Reinstall PyTorch with better GPU support
+pip uninstall torch torchvision torchaudio -y
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+
+# Or use CPU mode (slower but works)
+python preprocess_custom_datasets.py --device cpu
+python run_custom_experiments.py --device cpu
+```
+
 ### CUDA out of memory
 ```bash
 # Reduce batch size

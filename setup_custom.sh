@@ -41,21 +41,38 @@ echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
     # Check if CUDA is available
     if command -v nvcc &> /dev/null; then
-        CUDA_VERSION=$(nvcc --version | grep "release" | awk '{print $5}' | cut -d',' -f1)
+        CUDA_VERSION=$(nvcc --version | grep "release" | awk '{print $5}' | cut -d',' -f1 | cut -d'.' -f1,2)
         echo "CUDA version detected: $CUDA_VERSION"
         
-        # Install PyTorch with CUDA support
-        if [[ "$CUDA_VERSION" == "11."* ]]; then
-            pip install torch==1.9.0+cu111 torchvision==0.10.0+cu111 torchaudio==0.9.0 -f https://download.pytorch.org/whl/torch_stable.html
+        echo ""
+        echo "Installing PyTorch with CUDA support..."
+        echo "Recommendation: Use latest PyTorch for better GPU compatibility"
+        echo ""
+        read -p "Install latest PyTorch (recommended) or old version 1.9.0? (l/o) " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Ll]$ ]]; then
+            # Install latest PyTorch
+            echo "Installing latest PyTorch with CUDA 11.8 support..."
+            pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
         else
-            pip install torch==1.9.0 torchvision==0.10.0 torchaudio==0.9.0
+            # Install old version based on CUDA
+            if [[ "$CUDA_VERSION" == "11.1" ]] || [[ "$CUDA_VERSION" == "11.2" ]] || [[ "$CUDA_VERSION" == "11.3" ]]; then
+                pip install torch==1.9.0+cu111 torchvision==0.10.0+cu111 torchaudio==0.9.0 -f https://download.pytorch.org/whl/torch_stable.html
+            elif [[ "$CUDA_VERSION" == "10.2" ]]; then
+                pip install torch==1.9.0+cu102 torchvision==0.10.0+cu102 torchaudio==0.9.0 -f https://download.pytorch.org/whl/torch_stable.html
+            else
+                echo "Installing default PyTorch (may not match your CUDA version)"
+                pip install torch==1.9.0 torchvision==0.10.0 torchaudio==0.9.0
+            fi
         fi
     else
         echo "CUDA not detected, installing CPU version"
-        pip install torch==1.9.0 torchvision==0.10.0 torchaudio==0.9.0
+        pip install torch torchvision torchaudio
     fi
     
     # Install other dependencies
+    echo ""
+    echo "Installing other dependencies..."
     pip install faiss-cpu==1.7.1
     pip install numpy==1.19.2
     pip install pandas==1.0.5
@@ -101,7 +118,21 @@ fi
 # Test GPU
 echo ""
 echo "Step 5: Testing GPU availability..."
-python -c "import torch; print(f'PyTorch version: {torch.__version__}'); print(f'CUDA available: {torch.cuda.is_available()}'); print(f'CUDA version: {torch.version.cuda if torch.cuda.is_available() else \"N/A\"}'); print(f'GPU count: {torch.cuda.device_count() if torch.cuda.is_available() else 0}'); [print(f'GPU {i}: {torch.cuda.get_device_name(i)}') for i in range(torch.cuda.device_count())] if torch.cuda.is_available() else None"
+echo "Running CUDA compatibility check..."
+python check_cuda_compatibility.py
+
+if [ $? -ne 0 ]; then
+    echo ""
+    echo "⚠ CUDA compatibility issues detected!"
+    echo "See CUDA_FIX_GUIDE.md for detailed solutions"
+    echo ""
+    read -p "Continue anyway? (y/n) " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo "Setup aborted. Please fix CUDA issues first."
+        exit 1
+    fi
+fi
 
 # Summary
 echo ""

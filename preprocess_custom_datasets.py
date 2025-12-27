@@ -137,7 +137,8 @@ def generate_embeddings(dataset_path, doc_id, encoder):
         embeddings = encoder.encode(batch_names).cpu().detach().numpy()
 
         for j, entity_id in enumerate(batch_ids):
-            id_embedding[int(entity_id)] = embeddings[j].tolist()
+            # Wrap embedding in list to match expected format: id -> [embedding]
+            id_embedding[int(entity_id)] = [embeddings[j].tolist()]
 
     with open(output_file, "wb") as f:
         pickle.dump(id_embedding, f)

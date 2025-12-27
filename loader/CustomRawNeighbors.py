@@ -24,6 +24,15 @@ class CustomRawNeighbors:
         with open(join(self.path, "raw_LaBSE_emb_" + self.doc_id + ".pkl"), "rb") as f:
             self.id_entity = pickle.load(f)
 
+        # Ensure embeddings are in correct format: id -> [embedding]
+        # Handle both old format (id -> embedding) and new format (id -> [embedding])
+        for entity_id, embedding in self.id_entity.items():
+            if isinstance(embedding, list) and len(embedding) > 0:
+                # Check if it's already wrapped or is a flat embedding
+                if isinstance(embedding[0], (int, float)):
+                    # Old format: flat embedding, wrap it
+                    self.id_entity[entity_id] = [embedding]
+
     def id_neighbors_loader(self):
         data = pd.read_csv(
             join(self.path, "triples_" + self.doc_id), header=None, sep="\t"

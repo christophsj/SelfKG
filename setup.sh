@@ -9,7 +9,7 @@ echo "activate selfkg"
 conda activate selfkg
 
 echo "install pytorch"
-conda install -n selfkg pytorch=1.9.0 torchvision torchaudio cudatoolkit=10.2 -c pytorch # change according to your need here
+conda install -n selfkg pytorch=1.9.0 torchvision torchaudio cudatoolkit=11.2 -c pytorch # change according to your need here
 
 echo "install faiss-cpu=1.7.1"
 conda install -n selfkg faiss-cpu=1.7.1 -c pytorch
